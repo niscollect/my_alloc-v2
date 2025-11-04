@@ -22,26 +22,9 @@ Originally a learning project, **my_alloc** now provides an allocator core akin 
 
 ---
 
-## Core Design
-
-Each allocated block is laid out as:
-
-+----------------+----------------------+
-| block_header | user memory ... |
-+----------------+----------------------+
-↑
-Returned pointer
-
-text
-
-**Block metadata:**
-- `size` — payload size (excluding metadata)
-- `is_free` — allocation status flag
-- `next` — pointer to next block in current free list
-
-**Allocation Features:**
+**Allocation Features**
 - **Alignment & Rounding:** Rounds requests up to nearest multiple of 8 bytes
-- **Segregated Free Lists:** 
+- **Segregated Free Lists** 
 - **Fragmentation Reduction:** Splits large blocks, coalesces adjacent free blocks
 - **Thread Safety**
 - **Efficient Reuse:** Block splitting/coalescing
@@ -50,11 +33,23 @@ text
 
 ## Quick Start
 
-Build the allocator:
-gcc my_alloc.c -pthread -o my_alloc
-./my_alloc
+compile and test run:
 
----
+```bash
+gcc my_alloc.c -o my_alloc
+
+./my_alloc
+```
+
+## How it works
+
+Each memory block has metadata stored right before the user pointer:
+
+```
+Heap: [metadata][user data][metadata][user data]...
+               ↑                     ↑
+          returned ptr         returned ptr
+```
 
 ## API
 
