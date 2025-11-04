@@ -74,7 +74,6 @@ All functions mirror their libc equivalents in both naming and semantics.
 | NUM_CLASSES  | 10      | Segregated size class count          |
 | THREAD_SAFE  | Enabled | Per-class mutexes                    |
 
-Modify in `my_alloc.h` or compile-time defines.
 
 ---
 
