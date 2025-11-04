@@ -3,102 +3,90 @@
 
 my_alloc
 
-A low-level, alignment-aware, thread-safe, and segregated free list–based dynamic memory allocator implementing malloc(), calloc(), realloc(), and free() from scratch — built directly on top of sbrk().
+A low-level, alignment-aware, thread-safe, and segregated free list–based dynamic memory allocator that implements `malloc()`, `calloc()`, `realloc()`, and `free()` from scratch—built directly on top of `sbrk()`.
 
-What is this?
+---
 
-my_alloc is a full-fledged custom memory allocator that emulates the behavior of the standard C library’s malloc family.
-It provides:
+## Overview
 
-Manual heap management using sbrk()
+**my_alloc** is a fully custom memory allocator that emulates the behavior of the standard C library’s `malloc` family, designed for systems and research use.  
+It offers:
 
-Custom metadata tracking for each block
+- **Manual heap management** (via `sbrk()`)
+- **Custom metadata tracking** for every allocated block
+- **Segregated free lists** organized by size class
+- **Thread-safe allocation** with per-class fine-grained mutexes
+- **Configurable alignment** up to 16 bytes
 
-Free list organization by size class (segregated lists)
+Originally a learning project, **my_alloc** now provides an allocator core akin to the philosophies behind minimalist allocators like early `dlmalloc` or `jemalloc`.
 
-Thread-safe allocation through fine-grained locking
+---
 
-Alignment-aware allocations up to 16 bytes (configurable)
+## Core Design
 
-This project started as a learning experiment and evolved into a working allocator core similar in spirit to minimalist allocators like dlmalloc and jemalloc’s early designs.
+Each allocated block is laid out as:
 
-Core Design
++----------------+----------------------+
+| block_header | user memory ... |
++----------------+----------------------+
+↑
+Returned pointer
 
-Each allocated block is prefixed by metadata:
+text
 
-+----------------+--------------------+
-|  block_header  |  user memory ...   |
-+----------------+--------------------+
-                  ↑
-            returned pointer
+**Block metadata:**
+- `size` — payload size (excluding metadata)
+- `is_free` — allocation status flag
+- `next` — pointer to next block in current free list
 
+**Allocation Features:**
+- **Alignment & Rounding:** Rounds requests up to nearest multiple of 8 bytes
+- **Segregated Free Lists:** 
+- **Fragmentation Reduction:** Splits large blocks, coalesces adjacent free blocks
+- **Thread Safety**
+- **Efficient Reuse:** Block splitting/coalescing
 
-Every block maintains:
+---
 
-size — total payload size
+## Quick Start
 
-is_free — flag indicating block status
-
-next — pointer to the next block in the same free list
-
-Allocation flow
-
-Alignment & size rounding
-
-Rounds up requests to the nearest multiple of 8 or 16 bytes.
-
-Segregated free lists
-
-Maintains multiple free lists for different size ranges (e.g., 16B, 32B, 64B, etc.).
-
-Reduces fragmentation and lookup time.
-
-Thread safety
-
-Uses a pthread_mutex_t per size class.
-
-Avoids global locking.
-
-Block splitting
-
-Splits oversized free blocks for better reuse.
-
-Coalescing
-
-Adjacent free blocks are merged to mitigate fragmentation.
-
-Quick Start
+Build the allocator:
 gcc my_alloc.c -pthread -o my_alloc
 ./my_alloc
 
+---
 
-API
-void* my_alloc(size_t size);
-void  freee(void* ptr);
-void* call_oc(size_t nelem, size_t elsize);
-void* reall_oc(void* ptr, size_t size);
+## API
 
+### Function Signatures
 
-All functions mimic their libc counterparts in behavior and naming:
+void* my_alloc(size_t size); // malloc()
+void freee(void* ptr); // free()
+void* call_oc(size_t nelem, size_t elsize); // calloc()
+void* reall_oc(void* ptr, size_t size); // realloc()
 
-my_alloc() → malloc()
+text
 
-freee() → free()
+All functions mirror their libc equivalents in both naming and semantics.
 
-call_oc() → calloc()
+---
 
-reall_oc() → realloc()
+## ⚙️ Configuration
 
-Configuration
-Setting	Default	Description
-ALIGNMENT	8	Byte alignment boundary
-NUM_CLASSES	10	Number of segregated size classes
-THREAD_SAFE	Enabled	Enables per-class mutexes
+| Setting      | Default | Description                          |
+|--------------|---------|--------------------------------------|
+| ALIGNMENT    | 8       | Byte alignment boundary              |
+| NUM_CLASSES  | 10      | Segregated size class count          |
+| THREAD_SAFE  | Enabled | Per-class mutexes                    |
 
-Limitations
+Modify in `my_alloc.h` or compile-time defines.
 
-No memory reclamation to the OS (via brk or munmap)
+---
 
-Lacks advanced heuristics (e.g., best-fit, size hinting)
+## Limitations
 
-Debugging mode may show extra metadata overhead
+- Does *not* reclaim memory to the OS (e.g., `brk`, `munmap`)
+- No advanced best-fit/size hinting heuristics
+- Metadata/debug overhead visible in debug mode
+
+---
