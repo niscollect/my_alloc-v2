@@ -54,13 +54,13 @@ Heap: [metadata][user data][metadata][user data]...
 ## API
 
 ### Function Signatures
-
+```C
 void* my_alloc(size_t size); // malloc()
 void freee(void* ptr); // free()
 void* call_oc(size_t nelem, size_t elsize); // calloc()
 void* reall_oc(void* ptr, size_t size); // realloc()
+```
 
-text
 
 All functions mirror their libc equivalents in both naming and semantics.
 
